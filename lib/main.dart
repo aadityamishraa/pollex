@@ -4,7 +4,6 @@ import 'package:pollex/Providers/authentication_provider.dart';
 import 'package:pollex/Providers/bottom_nav_provider.dart';
 import 'package:pollex/Providers/db_provider.dart';
 import 'package:pollex/Providers/fetch_polls_provider.dart';
-import 'package:pollex/Screens/main_activity_page.dart';
 import 'package:pollex/Screens/splash_screen.dart';
 import 'package:pollex/firebase_options.dart';
 import 'package:provider/provider.dart';

@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:intl/intl.dart';
 import 'package:pollex/Providers/db_provider.dart';
 import 'package:pollex/Screens/BottomNavPages/MyPolls/add_new_polls.dart';
@@ -9,7 +10,8 @@ import 'package:pollex/Styles/colors.dart';
 import 'package:pollex/Utils/message.dart';
 import 'package:pollex/Utils/router.dart';
 import 'package:provider/provider.dart';
-
+import 'package:pollex/ad_helper.dart';
+import 'package:pollex/Screens/BottomNavPages/Home/home_page.dart';
 import '../../../Providers/fetch_polls_provider.dart';
 
 class MyPolls extends StatefulWidget {
@@ -20,7 +22,28 @@ class MyPolls extends StatefulWidget {
 }
 
 class _MyPollsState extends State<MyPolls> {
+   BannerAd? _bannerAd;
   bool _isFetched = false;
+  @override
+  void initState() {
+    super.initState();
+     BannerAd(
+    adUnitId: AdHelper.bannerAdUnitId,
+    request: AdRequest(),
+    size: AdSize.banner,
+    listener: BannerAdListener(
+      onAdLoaded: (ad) {
+        setState(() {
+          _bannerAd = ad as BannerAd;
+        });
+      },
+      onAdFailedToLoad: (ad, err) {
+        print('Failed to load a banner ad: ${err.message}');
+        ad.dispose();
+      },
+    ),
+  ).load();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,6 +69,7 @@ class _MyPollsState extends State<MyPolls> {
                         SliverToBoxAdapter(
                           child: Container(
                             padding: const EdgeInsets.all(20),
+                            
                             child: Column(
                               children: [
                                 ...List.generate(polls.userPollsList.length,
@@ -174,11 +198,17 @@ class _MyPollsState extends State<MyPolls> {
                                 })
                               ],
                             ),
+                            
                           ),
+                        
+            
                         )
                       ],
                     ),
+                    
         );
+       
+        
       }),
     );
   }

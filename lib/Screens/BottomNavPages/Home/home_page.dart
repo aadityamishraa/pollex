@@ -16,6 +16,9 @@ import 'package:share_plus/share_plus.dart';
 
 import '../MyPolls/add_new_polls.dart';
 
+import 'package:pollex/ad_helper.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -25,11 +28,94 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool _isFetched = false;
+  BannerAd? _bannerAd;
+  InterstitialAd? _interstitialAd;
+  RewardedAd? _rewardedAd;
+
+  // TODO: Implement _loadRewardedAd()
+  void _loadRewardedAd() {
+    RewardedAd.load(
+      adUnitId: AdHelper.rewardedAdUnitId,
+      request: AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (ad) {
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (ad) {
+              setState(() {
+                ad.dispose();
+                _rewardedAd = null;
+              });
+              _loadRewardedAd();
+            },
+          );
+
+          setState(() {
+            _rewardedAd = ad;
+          });
+        },
+        onAdFailedToLoad: (err) {
+          print('Failed to load a rewarded ad: ${err.message}');
+        },
+      ),
+    );
+  }
+
+  void _loadInterstitialAd() {
+    InterstitialAd.load(
+      adUnitId: AdHelper.interstitialAdUnitId,
+      request: AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (ad) {
+              nextPage(context, const AddPollPage());
+            },
+          );
+
+          setState(() {
+            _interstitialAd = ad;
+          });
+        },
+        onAdFailedToLoad: (err) {
+          print('Failed to load an interstitial ad: ${err.message}');
+        },
+      ),
+    );
+  }
 
   User? user = FirebaseAuth.instance.currentUser;
   @override
+  void initState() {
+    super.initState();
+    _loadRewardedAd();
+    _loadRewardedAd();
+    BannerAd(
+      adUnitId: AdHelper.bannerAdUnitId,
+      request: AdRequest(),
+      size: AdSize.banner,
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          setState(() {
+            _bannerAd = ad as BannerAd;
+          });
+        },
+        onAdFailedToLoad: (ad, err) {
+          print('Failed to load a banner ad: ${err.message}');
+          ad.dispose();
+        },
+      ),
+    ).load();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: SvgPicture.asset("assets/logo.svg"),
+      ),
       body: Consumer<FetchPollsProvider>(builder: (context, polls, child) {
         if (_isFetched == false) {
           polls.fetchAllPolls();
@@ -51,9 +137,57 @@ class _HomePageState extends State<HomePage> {
                       slivers: [
                         SliverToBoxAdapter(
                           child: Container(
+                            // color: Colors.red,
                             padding: const EdgeInsets.all(20),
                             child: Column(
                               children: [
+                                if (_bannerAd != null)
+                                  Align(
+                                    alignment: Alignment.topCenter,
+                                    child: Container(
+                                      // color: Colors.yellow,
+
+                                      width: _bannerAd!.size.width.toDouble(),
+                                      height: _bannerAd!.size.height.toDouble(),
+                                      child: AdWidget(ad: _bannerAd!),
+                                    ),
+                                  ),
+                                SizedBox(
+                                  height: 15.00,
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+            showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  title: Text('Want a Rewardt?'),
+                  content: Text('Watch an Ad to get a reward!'),
+                  actions: [
+                    TextButton(
+                      child: Text('cancel'.toUpperCase()),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    TextButton(
+                      child: Text('ok'.toUpperCase()),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _rewardedAd?.show(
+                          onUserEarnedReward: (_, reward) {
+                           // QuizManager.instance.useHint();
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+                      },
+                                  child: Text("Test"),
+                                ),
                                 ...List.generate(polls.pollsList.length,
                                     (index) {
                                   final data = polls.pollsList[index];
@@ -71,6 +205,7 @@ class _HomePageState extends State<HomePage> {
                                     margin: const EdgeInsets.only(bottom: 10),
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
+                                        color: Colors.yellow,
                                         border:
                                             Border.all(color: AppColors.grey),
                                         borderRadius:
@@ -100,15 +235,18 @@ class _HomePageState extends State<HomePage> {
                                               },
                                               icon: const Icon(Icons.share)),
                                         ),
-                                        Text(poll["question"]),
+                                        Text(
+                                          poll["question"],
+                                          style: TextStyle(fontSize: 18),
+                                        ),
                                         const SizedBox(
-                                          height: 8,
+                                          height: 15,
                                         ),
                                         ...List.generate(options.length,
                                             (index) {
                                           final dataOption = options[index];
-                                          return Consumer<DbProvider>(builder:
-                                              (context, vote, child) {
+                                          return Consumer<DbProvider>(
+                                              builder: (context, vote, child) {
                                             WidgetsBinding.instance
                                                 .addPostFrameCallback(
                                               (_) {
@@ -116,14 +254,12 @@ class _HomePageState extends State<HomePage> {
                                                   if (vote.message.contains(
                                                       "Vote Recorded")) {
                                                     success(context,
-                                                        message:
-                                                            vote.message);
+                                                        message: vote.message);
                                                     polls.fetchAllPolls();
                                                     vote.clear();
                                                   } else {
                                                     error(context,
-                                                        message:
-                                                            vote.message);
+                                                        message: vote.message);
                                                     vote.clear();
                                                   }
                                                 }
@@ -142,14 +278,12 @@ class _HomePageState extends State<HomePage> {
                                                       previousTotalVotes:
                                                           poll["total_votes"],
                                                       seletedOptions:
-                                                          dataOption[
-                                                              "answer"]);
+                                                          dataOption["answer"]);
                                                 } else {
                                                   final isExists =
                                                       voters.firstWhere(
                                                           (element) =>
-                                                              element[
-                                                                  "uid"] ==
+                                                              element["uid"] ==
                                                               user!.uid,
                                                           orElse: () {});
                                                   if (isExists == null) {
@@ -158,8 +292,7 @@ class _HomePageState extends State<HomePage> {
                                                         pollId: data.id,
                                                         pollData: data,
                                                         previousTotalVotes:
-                                                            poll[
-                                                                "total_votes"],
+                                                            poll["total_votes"],
                                                         seletedOptions:
                                                             dataOption[
                                                                 "answer"]);
@@ -173,30 +306,35 @@ class _HomePageState extends State<HomePage> {
                                                 }
                                               },
                                               child: Container(
+                                                alignment: Alignment.center,
+                                                width: size.width * 0.75,
+                                                color: Colors.red,
                                                 margin: const EdgeInsets.only(
-                                                    bottom: 5),
+                                                    bottom: 10),
                                                 child: Row(
                                                   children: [
                                                     Expanded(
                                                       child: Stack(
                                                         children: [
                                                           LinearProgressIndicator(
-                                                            minHeight: 30,
+                                                            minHeight: 40,
                                                             value: dataOption[
                                                                     "percent"] /
                                                                 100,
                                                             backgroundColor:
-                                                                AppColors
-                                                                    .white,
+                                                                Color(
+                                                                    0xffeeeeee),
                                                           ),
                                                           Container(
+                                                            color: Colors.blue,
                                                             alignment: Alignment
                                                                 .centerLeft,
-                                                            padding: const EdgeInsets
-                                                                    .symmetric(
-                                                                horizontal:
-                                                                    10),
-                                                            height: 30,
+                                                            padding:
+                                                                const EdgeInsets
+                                                                        .symmetric(
+                                                                    horizontal:
+                                                                        10),
+                                                            height: 50,
                                                             child: Text(
                                                                 dataOption[
                                                                     "answer"]),
@@ -231,7 +369,12 @@ class _HomePageState extends State<HomePage> {
       }),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          nextPage(context, const AddPollPage());
+          if (_interstitialAd != null) {
+            _interstitialAd?.show();
+          } else {
+            nextPage(context, const AddPollPage());
+            print("ad not found");
+          }
         },
         child: const Icon(Icons.add),
       ),

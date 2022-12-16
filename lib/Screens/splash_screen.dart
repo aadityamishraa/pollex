@@ -17,7 +17,7 @@ class _SplashScreenState extends State<SplashScreen> {
   User? user = FirebaseAuth.instance.currentUser;
 
   void navigate() {
-    Future.delayed(const Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds:0), () {
       if (user == null) {
         nextPageOnly(context, const AuthPage());
       } else {
@@ -42,7 +42,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return const Scaffold(
       body: Center(
-        child: FlutterLogo(),
+        child: Text("."),
       ),
     );
   }
