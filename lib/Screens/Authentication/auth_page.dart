@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pollex/Providers/authentication_provider.dart';
 import 'package:pollex/Screens/main_activity_page.dart';
 import 'package:pollex/Styles/colors.dart';
@@ -18,25 +19,40 @@ class _AuthPageState extends State<AuthPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: GestureDetector(
-          onTap: () {
-            AuthProvider().signInWithGoogle().then((value) {
-              if (value.user == null) {
-                error(context, message: "Please try again");
-              } else {
-                nextPageOnly(context, const MainActivityPage());
-              }
-            });
-          },
-          child: Container(
-            height: 50,
-            width: 100,
-            decoration: BoxDecoration(
-                color: AppColors.primaryColor,
-                borderRadius: BorderRadius.circular(10)),
-            alignment: Alignment.center,
-            child: const Text("Login"),
-          ),
+        
+        child: Column(
+          children: [
+            SvgPicture.asset("assets/welcome.svg"),
+            Text("Welcome to the Pollex", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
+            SizedBox(height: 20,),
+            GestureDetector(
+              onTap: () {
+                AuthProvider().signInWithGoogle().then((value) {
+                  if (value.user == null) {
+                    error(context, message: "Please try again");
+                  } else {
+                    nextPageOnly(context, const MainActivityPage());
+                  }
+                });
+              },
+              child: Container(
+                height: 50,
+                width: 250,
+                decoration: BoxDecoration(
+                    color: AppColors.primaryColor,
+                    borderRadius: BorderRadius.circular(10)),
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset("assets/google.png", width: 25, height: 25,),
+                    SizedBox(width: 10,),
+                    const Text("Login with Google", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

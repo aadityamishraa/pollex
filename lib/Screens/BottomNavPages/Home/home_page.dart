@@ -155,39 +155,7 @@ class _HomePageState extends State<HomePage> {
                                 SizedBox(
                                   height: 15.00,
                                 ),
-                                ElevatedButton(
-                                  onPressed: () {
-            showDialog(
-              context: context,
-              builder: (context) {
-                return AlertDialog(
-                  title: Text('Want a Rewardt?'),
-                  content: Text('Watch an Ad to get a reward!'),
-                  actions: [
-                    TextButton(
-                      child: Text('cancel'.toUpperCase()),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                    ),
-                    TextButton(
-                      child: Text('ok'.toUpperCase()),
-                      onPressed: () {
-                        Navigator.pop(context);
-                        _rewardedAd?.show(
-                          onUserEarnedReward: (_, reward) {
-                           // QuizManager.instance.useHint();
-                          },
-                        );
-                      },
-                    ),
-                  ],
-                );
-              },
-            );
-                      },
-                                  child: Text("Test"),
-                                ),
+                                
                                 ...List.generate(polls.pollsList.length,
                                     (index) {
                                   final data = polls.pollsList[index];
@@ -202,10 +170,10 @@ class _HomePageState extends State<HomePage> {
                                   List<dynamic> options = poll["options"];
 
                                   return Container(
-                                    margin: const EdgeInsets.only(bottom: 10),
-                                    padding: const EdgeInsets.all(8),
+                                    margin: const EdgeInsets.only(bottom: 25),
+                                    padding: const EdgeInsets.all(15.0),
                                     decoration: BoxDecoration(
-                                        color: Colors.yellow,
+                                        color: Colors.white,
                                         border:
                                             Border.all(color: AppColors.grey),
                                         borderRadius:
@@ -224,16 +192,16 @@ class _HomePageState extends State<HomePage> {
                                           title: Text(author["name"]),
                                           subtitle: Text(DateFormat.yMEd()
                                               .format(date.toDate())),
-                                          trailing: IconButton(
-                                              onPressed: () {
-                                                ///
-                                                DynamicLinkProvider()
-                                                    .createLink(data.id)
-                                                    .then((value) {
-                                                  Share.share(value);
-                                                });
-                                              },
-                                              icon: const Icon(Icons.share)),
+                                          // trailing: IconButton(
+                                          //     onPressed: () {
+                                          //       ///
+                                          //       DynamicLinkProvider()
+                                          //           .createLink(data.id)
+                                          //           .then((value) {
+                                          //         Share.share(value);
+                                          //       });
+                                          //     },
+                                          //     icon: const Icon(Icons.share)),
                                         ),
                                         Text(
                                           poll["question"],
@@ -308,9 +276,9 @@ class _HomePageState extends State<HomePage> {
                                               child: Container(
                                                 alignment: Alignment.center,
                                                 width: size.width * 0.75,
-                                                color: Colors.red,
+                                                color: Color(0xffeeeeee),
                                                 margin: const EdgeInsets.only(
-                                                    bottom: 10),
+                                                    bottom: 10, left: 15),
                                                 child: Row(
                                                   children: [
                                                     Expanded(
@@ -326,7 +294,7 @@ class _HomePageState extends State<HomePage> {
                                                                     0xffeeeeee),
                                                           ),
                                                           Container(
-                                                            color: Colors.blue,
+                                                            // color: Colors.blue,
                                                             alignment: Alignment
                                                                 .centerLeft,
                                                             padding:
@@ -353,8 +321,42 @@ class _HomePageState extends State<HomePage> {
                                             );
                                           });
                                         }),
-                                        Text(
-                                            "Total votes : ${poll["total_votes"]}")
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(15),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                color: Color(0xffeeeeee),
+                                              ),
+                                              child: Text(
+                                                "Total votes : ${poll["total_votes"]}",
+                                                style: TextStyle(fontSize: 18),
+                                              ),
+                                            ),
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                                color: Color(0xffeeeeee),
+                                              ),
+                                              child: IconButton(
+                                                  onPressed: () {
+                                                    ///
+                                                    DynamicLinkProvider()
+                                                        .createLink(data.id)
+                                                        .then((value) {
+                                                      Share.share(value);
+                                                    });
+                                                  },
+                                                  icon:
+                                                      const Icon(Icons.share)),
+                                            ),
+                                          ],
+                                        ),
                                       ],
                                     ),
                                   );

@@ -210,6 +210,7 @@ class _AccountPageState extends State<AccountPage> {
                                               children: [
                                                 Expanded(
                                                   child: Stack(
+
                                                     children: [
                                                       LinearProgressIndicator(
                                                         minHeight: 30,
